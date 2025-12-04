@@ -15,6 +15,7 @@ import { TransactionList, Checkout, Checkin } from "../pages/transactions";
 import CategoryList from "../pages/categories/CategoryList";
 import LocationList from "../pages/locations/LocationList";
 import Reports from "../pages/reports/Reports";
+import ChatPage from "../pages/chat/ChatPage";
 
 // Error Pages
 import NotFound from "../pages/errors/NotFound";
@@ -97,6 +98,16 @@ const AppRoutes = () => {
 
                 {/* Reports */}
                 <Route path="reports" element={<Reports />} />
+
+                {/* AI Chat Query - Admin & Staff Only */}
+                <Route
+                    path="chat"
+                    element={
+                        <ProtectedRoute allowedRoles={["admin", "staff"]}>
+                            <ChatPage />
+                        </ProtectedRoute>
+                    }
+                />
             </Route>
 
             {/* 404 */}

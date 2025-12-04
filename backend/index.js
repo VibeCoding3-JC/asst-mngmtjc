@@ -60,6 +60,7 @@ import LocationRoutes from "./routes/LocationRoutes.js";
 import AssetRoutes from "./routes/AssetRoutes.js";
 import TransactionRoutes from "./routes/TransactionRoutes.js";
 import DashboardRoutes from "./routes/DashboardRoutes.js";
+import ChatRoutes from "./routes/ChatRoutes.js";
 
 app.use("/api/auth", AuthRoutes);
 app.use("/api/users", UserRoutes);
@@ -68,6 +69,7 @@ app.use("/api/locations", LocationRoutes);
 app.use("/api/assets", AssetRoutes);
 app.use("/api/transactions", TransactionRoutes);
 app.use("/api/dashboard", DashboardRoutes);
+app.use("/api/chat", ChatRoutes);
 
 // 404 Handler
 app.use((req, res) => {

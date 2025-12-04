@@ -8,6 +8,7 @@ import {
     FolderIcon,
     MapPinIcon,
     ChartBarIcon,
+    ChatBubbleLeftRightIcon,
     Bars3Icon,
     XMarkIcon
 } from "@heroicons/react/24/outline";
@@ -20,7 +21,8 @@ const navigation = [
     { name: "Pengguna", href: "/users", icon: UsersIcon, roles: ["admin", "staff"] },
     { name: "Kategori", href: "/categories", icon: FolderIcon, roles: ["admin"] },
     { name: "Lokasi", href: "/locations", icon: MapPinIcon, roles: ["admin"] },
-    { name: "Laporan", href: "/reports", icon: ChartBarIcon }
+    { name: "Laporan", href: "/reports", icon: ChartBarIcon },
+    { name: "AI Chat", href: "/chat", icon: ChatBubbleLeftRightIcon, roles: ["admin", "staff"] }
 ];
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
