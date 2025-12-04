@@ -1048,7 +1048,17 @@ REFRESH_TOKEN_SECRET=your_refresh_secret
   - [x] Transactions endpoints
   - [x] Dashboard endpoints
   - [x] Error codes reference
-- [ ] **6.2.3** User manual (basic usage guide)
+- [x] **6.2.3** User manual (`docs/USER_MANUAL.md`):
+  - [x] Pendahuluan & Role pengguna
+  - [x] Login & Autentikasi
+  - [x] Dashboard guide
+  - [x] Manajemen Aset (CRUD, status, detail)
+  - [x] Transaksi Aset (checkout, checkin, transfer, repair, dispose)
+  - [x] Manajemen Kategori
+  - [x] Manajemen Lokasi
+  - [x] Manajemen User
+  - [x] Laporan & Export (Excel, PDF)
+  - [x] FAQ & Troubleshooting
 
 ---
 
@@ -1076,7 +1086,7 @@ REFRESH_TOKEN_SECRET=your_refresh_secret
 | 3 | Backend API | 100% | ✅ Completed |
 | 4 | Frontend Development | 100% | ✅ Completed |
 | 5 | Integration & Testing | 100% | ✅ Completed |
-| 6 | Deployment Preparation | 90% | 🔄 In Progress |
+| 6 | Deployment Preparation | 95% | 🔄 In Progress |
 
 **Legend:**
 - ⬜ Not Started
