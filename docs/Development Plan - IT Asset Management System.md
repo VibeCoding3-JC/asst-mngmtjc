@@ -1014,19 +1014,19 @@ REFRESH_TOKEN_SECRET=your_refresh_secret
 
 ### Backend Checklist:
 
-- [ ] **6.1.1** Setup production environment variables
-- [ ] **6.1.2** Configure production database (MySQL)
-- [ ] **6.1.3** Setup CORS untuk production domain
-- [ ] **6.1.4** Disable development logs
-- [ ] **6.1.5** Setup PM2 atau similar process manager
-- [ ] **6.1.6** Configure HTTPS/SSL
+- [x] **6.1.1** Setup production environment variables (`.env.production`)
+- [x] **6.1.2** Configure production database (MySQL) - database.js sudah support multi-env
+- [x] **6.1.3** Setup CORS untuk production domain (via `CLIENT_URL` env)
+- [x] **6.1.4** Disable development logs (via `NODE_ENV` check)
+- [x] **6.1.5** Setup PM2 (`ecosystem.config.cjs`)
+- [x] **6.1.6** Configure HTTPS/SSL - Dokumentasi Nginx + Let's Encrypt
 
 ### Frontend Checklist:
 
-- [ ] **6.1.7** Build production (`npm run build`)
-- [ ] **6.1.8** Configure production API URL
-- [ ] **6.1.9** Optimize bundle size
-- [ ] **6.1.10** Setup hosting (Nginx/Apache/Vercel)
+- [x] **6.1.7** Build production (`npm run build`) - ✅ Built successfully
+- [x] **6.1.8** Configure production API URL (`.env.production`)
+- [x] **6.1.9** Optimize bundle size (`vite.config.js` - terser, chunking)
+- [x] **6.1.10** Setup hosting documentation (`docs/DEPLOYMENT.md`)
 
 ---
 
@@ -1068,7 +1068,7 @@ REFRESH_TOKEN_SECRET=your_refresh_secret
 | 3 | Backend API | 100% | ✅ Completed |
 | 4 | Frontend Development | 100% | ✅ Completed |
 | 5 | Integration & Testing | 100% | ✅ Completed |
-| 6 | Deployment Preparation | 50% | 🔄 In Progress |
+| 6 | Deployment Preparation | 80% | 🔄 In Progress |
 
 **Legend:**
 - ⬜ Not Started
