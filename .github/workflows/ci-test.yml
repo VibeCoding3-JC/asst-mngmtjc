@@ -1,0 +1,411 @@
+name: CI - Unit Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  # ============================================
+  # Backend Tests (Jest + MySQL)
+  # ============================================
+  backend-test:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: it_asset_management_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: 📦 Install backend dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: ⏳ Wait for MySQL
+        run: |
+          until mysqladmin ping -h 127.0.0.1 -P 3306 -u root -proot --silent; do
+            echo "Waiting for MySQL..."
+            sleep 2
+          done
+          echo "MySQL is ready!"
+
+      - name: 🧪 Run backend tests
+        working-directory: ./backend
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_NAME: it_asset_management_test
+          DB_USER: root
+          DB_PASS: root
+          ACCESS_TOKEN_SECRET: test_access_token_secret_for_ci
+          REFRESH_TOKEN_SECRET: test_refresh_token_secret_for_ci
+          NODE_ENV: test
+        run: |
+          npm test -- --json --outputFile=test-results.json --coverage --coverageReporters=json-summary 2>&1 | tee test-output.txt
+          echo "TEST_EXIT_CODE=${PIPESTATUS[0]}" >> $GITHUB_ENV
+
+      - name: 📊 Generate backend test summary
+        if: always()
+        working-directory: ./backend
+        run: |
+          if [ -f test-results.json ]; then
+            echo "BACKEND_RESULTS<<EOF" >> $GITHUB_ENV
+            node -e "
+              const results = require('./test-results.json');
+              const coverage = require('./coverage/coverage-summary.json') || {};
+              
+              const total = results.numTotalTests || 0;
+              const passed = results.numPassedTests || 0;
+              const failed = results.numFailedTests || 0;
+              const skipped = results.numPendingTests || 0;
+              const duration = ((results.testResults || []).reduce((acc, r) => acc + (r.endTime - r.startTime), 0) / 1000).toFixed(2);
+              const status = failed > 0 ? '❌ FAIL' : '✅ PASS';
+              
+              let coverageInfo = '';
+              if (coverage.total) {
+                coverageInfo = '| Overall | ' + 
+                  (coverage.total.statements?.pct || 0) + '% | ' +
+                  (coverage.total.branches?.pct || 0) + '% | ' +
+                  (coverage.total.functions?.pct || 0) + '% | ' +
+                  (coverage.total.lines?.pct || 0) + '% |';
+              }
+              
+              console.log(JSON.stringify({
+                status,
+                total,
+                passed,
+                failed,
+                skipped,
+                duration,
+                coverage: coverageInfo
+              }));
+            " 2>/dev/null || echo '{"status":"⚠️ UNKNOWN","total":0,"passed":0,"failed":0,"skipped":0,"duration":"0","coverage":""}'
+            echo "EOF" >> $GITHUB_ENV
+          else
+            echo "BACKEND_RESULTS={\"status\":\"⚠️ NO RESULTS\",\"total\":0,\"passed\":0,\"failed\":0,\"skipped\":0,\"duration\":\"0\",\"coverage\":\"\"}" >> $GITHUB_ENV
+          fi
+
+      - name: 📤 Upload backend test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-results
+          path: |
+            backend/test-results.json
+            backend/test-output.txt
+            backend/coverage/
+          retention-days: 7
+
+  # ============================================
+  # Frontend Tests (Vitest)
+  # ============================================
+  frontend-test:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: 📦 Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: 🧪 Run frontend tests
+        working-directory: ./frontend
+        run: |
+          npm test -- --reporter=json --outputFile=test-results.json 2>&1 | tee test-output.txt
+          echo "TEST_EXIT_CODE=${PIPESTATUS[0]}" >> $GITHUB_ENV
+
+      - name: 📊 Generate frontend test summary
+        if: always()
+        working-directory: ./frontend
+        run: |
+          if [ -f test-results.json ]; then
+            echo "FRONTEND_RESULTS<<EOF" >> $GITHUB_ENV
+            node -e "
+              const fs = require('fs');
+              try {
+                const results = JSON.parse(fs.readFileSync('test-results.json', 'utf8'));
+                
+                let total = 0, passed = 0, failed = 0, skipped = 0, duration = 0;
+                
+                if (results.testResults) {
+                  results.testResults.forEach(file => {
+                    file.assertionResults?.forEach(test => {
+                      total++;
+                      if (test.status === 'passed') passed++;
+                      else if (test.status === 'failed') failed++;
+                      else skipped++;
+                    });
+                    duration += file.endTime - file.startTime;
+                  });
+                } else if (results.numTotalTests !== undefined) {
+                  total = results.numTotalTests;
+                  passed = results.numPassedTests;
+                  failed = results.numFailedTests;
+                  skipped = results.numPendingTests || 0;
+                }
+                
+                const status = failed > 0 ? '❌ FAIL' : '✅ PASS';
+                console.log(JSON.stringify({
+                  status,
+                  total,
+                  passed,
+                  failed,
+                  skipped,
+                  duration: (duration / 1000).toFixed(2)
+                }));
+              } catch (e) {
+                console.log('{\"status\":\"⚠️ PARSE ERROR\",\"total\":0,\"passed\":0,\"failed\":0,\"skipped\":0,\"duration\":\"0\"}');
+              }
+            " 2>/dev/null || echo '{"status":"⚠️ UNKNOWN","total":0,"passed":0,"failed":0,"skipped":0,"duration":"0"}'
+            echo "EOF" >> $GITHUB_ENV
+          else
+            echo "FRONTEND_RESULTS={\"status\":\"⚠️ NO RESULTS\",\"total\":0,\"passed\":0,\"failed\":0,\"skipped\":0,\"duration\":\"0\"}" >> $GITHUB_ENV
+          fi
+
+      - name: 📤 Upload frontend test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-test-results
+          path: |
+            frontend/test-results.json
+            frontend/test-output.txt
+          retention-days: 7
+
+  # ============================================
+  # Post PR Comment with Test Results
+  # ============================================
+  pr-comment:
+    name: Post Test Results
+    runs-on: ubuntu-latest
+    needs: [backend-test, frontend-test]
+    if: always() && github.event_name == 'pull_request'
+
+    steps:
+      - name: 📥 Download backend results
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-test-results
+          path: backend-results
+        continue-on-error: true
+
+      - name: 📥 Download frontend results
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-test-results
+          path: frontend-results
+        continue-on-error: true
+
+      - name: 📝 Generate and post PR comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            // Parse backend results
+            let backendData = { status: '⚠️ N/A', total: 0, passed: 0, failed: 0, skipped: 0, duration: '0', coverage: '' };
+            let backendCoverage = null;
+            try {
+              const backendResults = JSON.parse(fs.readFileSync('backend-results/test-results.json', 'utf8'));
+              backendData = {
+                status: backendResults.numFailedTests > 0 ? '❌ FAIL' : '✅ PASS',
+                total: backendResults.numTotalTests || 0,
+                passed: backendResults.numPassedTests || 0,
+                failed: backendResults.numFailedTests || 0,
+                skipped: backendResults.numPendingTests || 0,
+                duration: ((backendResults.testResults || []).reduce((acc, r) => acc + (r.endTime - r.startTime), 0) / 1000).toFixed(2)
+              };
+              
+              // Try to read coverage
+              try {
+                const coverage = JSON.parse(fs.readFileSync('backend-results/coverage/coverage-summary.json', 'utf8'));
+                if (coverage.total) {
+                  backendCoverage = {
+                    statements: coverage.total.statements?.pct || 0,
+                    branches: coverage.total.branches?.pct || 0,
+                    functions: coverage.total.functions?.pct || 0,
+                    lines: coverage.total.lines?.pct || 0
+                  };
+                }
+              } catch (e) {}
+            } catch (e) {
+              console.log('Could not parse backend results:', e.message);
+            }
+            
+            // Parse frontend results
+            let frontendData = { status: '⚠️ N/A', total: 0, passed: 0, failed: 0, skipped: 0, duration: '0' };
+            try {
+              const frontendResults = JSON.parse(fs.readFileSync('frontend-results/test-results.json', 'utf8'));
+              
+              let total = 0, passed = 0, failed = 0, skipped = 0, duration = 0;
+              if (frontendResults.testResults) {
+                frontendResults.testResults.forEach(file => {
+                  file.assertionResults?.forEach(test => {
+                    total++;
+                    if (test.status === 'passed') passed++;
+                    else if (test.status === 'failed') failed++;
+                    else skipped++;
+                  });
+                  duration += (file.endTime || 0) - (file.startTime || 0);
+                });
+              } else if (frontendResults.numTotalTests !== undefined) {
+                total = frontendResults.numTotalTests;
+                passed = frontendResults.numPassedTests;
+                failed = frontendResults.numFailedTests;
+                skipped = frontendResults.numPendingTests || 0;
+              }
+              
+              frontendData = {
+                status: failed > 0 ? '❌ FAIL' : '✅ PASS',
+                total,
+                passed,
+                failed,
+                skipped,
+                duration: (duration / 1000).toFixed(2)
+              };
+            } catch (e) {
+              console.log('Could not parse frontend results:', e.message);
+            }
+            
+            // Overall status
+            const overallStatus = (backendData.failed > 0 || frontendData.failed > 0) ? '❌ FAILED' : '✅ PASSED';
+            const totalTests = backendData.total + frontendData.total;
+            const totalPassed = backendData.passed + frontendData.passed;
+            const totalFailed = backendData.failed + frontendData.failed;
+            
+            // Build comment body
+            let body = `## 🧪 Test Results Summary
+
+            **Overall Status:** ${overallStatus}
+            **Total Tests:** ${totalTests} | **Passed:** ${totalPassed} | **Failed:** ${totalFailed}
+
+            ---
+
+            ### 🔧 Backend Tests (Jest)
+
+            | Status | Tests | Passed | Failed | Skipped | Duration |
+            |--------|-------|--------|--------|---------|----------|
+            | ${backendData.status} | ${backendData.total} | ${backendData.passed} | ${backendData.failed} | ${backendData.skipped} | ${backendData.duration}s |
+
+            `;
+            
+            if (backendCoverage) {
+              body += `
+            **📊 Coverage:**
+            | Statements | Branches | Functions | Lines |
+            |------------|----------|-----------|-------|
+            | ${backendCoverage.statements}% | ${backendCoverage.branches}% | ${backendCoverage.functions}% | ${backendCoverage.lines}% |
+
+            `;
+            }
+            
+            body += `
+            ### 🎨 Frontend Tests (Vitest)
+
+            | Status | Tests | Passed | Failed | Skipped | Duration |
+            |--------|-------|--------|--------|---------|----------|
+            | ${frontendData.status} | ${frontendData.total} | ${frontendData.passed} | ${frontendData.failed} | ${frontendData.skipped} | ${frontendData.duration}s |
+
+            ---
+
+            <details>
+            <summary>📋 Details</summary>
+
+            - **Commit:** \`${context.sha.substring(0, 7)}\`
+            - **Author:** @${context.actor}
+            - **Branch:** \`${context.payload.pull_request?.head?.ref || 'N/A'}\` → \`${context.payload.pull_request?.base?.ref || 'N/A'}\`
+            - **Workflow Run:** [View Details](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
+
+            </details>
+
+            ---
+            *🤖 This comment is automatically generated by GitHub Actions*
+            `;
+            
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('🧪 Test Results Summary')
+            );
+            
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+              console.log('Updated existing comment');
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+              console.log('Created new comment');
+            }
+
+  # ============================================
+  # Final Status Check
+  # ============================================
+  test-status:
+    name: Test Status
+    runs-on: ubuntu-latest
+    needs: [backend-test, frontend-test]
+    if: always()
+    
+    steps:
+      - name: Check test results
+        run: |
+          if [ "${{ needs.backend-test.result }}" == "failure" ] || [ "${{ needs.frontend-test.result }}" == "failure" ]; then
+            echo "❌ Some tests failed!"
+            exit 1
+          else
+            echo "✅ All tests passed!"
+          fi
