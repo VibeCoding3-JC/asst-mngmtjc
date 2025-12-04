@@ -1034,12 +1034,20 @@ REFRESH_TOKEN_SECRET=your_refresh_secret
 
 ### Checklist Tasks:
 
-- [ ] **6.2.1** Update README.md dengan:
-  - [ ] Installation steps
-  - [ ] Environment setup
-  - [ ] Running locally
-  - [ ] Deployment steps
-- [ ] **6.2.2** API Documentation (endpoints, request/response)
+- [x] **6.2.1** Update README.md dengan:
+  - [x] Installation steps
+  - [x] Environment setup
+  - [x] Running locally
+  - [x] Deployment steps (link ke DEPLOYMENT.md)
+- [x] **6.2.2** API Documentation (`docs/API_DOCUMENTATION.md`):
+  - [x] Authentication endpoints
+  - [x] Users endpoints
+  - [x] Assets endpoints
+  - [x] Categories endpoints
+  - [x] Locations endpoints
+  - [x] Transactions endpoints
+  - [x] Dashboard endpoints
+  - [x] Error codes reference
 - [ ] **6.2.3** User manual (basic usage guide)
 
 ---
@@ -1068,7 +1076,7 @@ REFRESH_TOKEN_SECRET=your_refresh_secret
 | 3 | Backend API | 100% | ✅ Completed |
 | 4 | Frontend Development | 100% | ✅ Completed |
 | 5 | Integration & Testing | 100% | ✅ Completed |
-| 6 | Deployment Preparation | 80% | 🔄 In Progress |
+| 6 | Deployment Preparation | 90% | 🔄 In Progress |
 
 **Legend:**
 - ⬜ Not Started
