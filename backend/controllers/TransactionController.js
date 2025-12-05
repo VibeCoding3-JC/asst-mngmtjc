@@ -1,6 +1,7 @@
 import { Op } from "sequelize";
 import { Transactions, Assets, Users, Locations } from "../models/index.js";
 import { successResponse, errorResponse, paginationMeta } from "../utils/ResponseFormatter.js";
+import { createNotification, notifyStaffAndAdmins } from "./NotificationController.js";
 
 /**
  * Get all transactions with pagination and filters
@@ -173,6 +174,27 @@ export const checkoutAsset = async (req, res) => {
             ]
         });
 
+        // Send notification to the user who borrowed
+        await createNotification({
+            userId: user.id,
+            type: "checkout",
+            title: "Aset Dipinjamkan",
+            message: `Anda telah meminjam aset "${asset.name}" (${asset.asset_code})`,
+            referenceType: "transaction",
+            referenceId: transaction.id,
+            referenceUuid: newTransaction.uuid
+        });
+
+        // Notify staff and admins
+        await notifyStaffAndAdmins({
+            type: "checkout",
+            title: "Peminjaman Aset Baru",
+            message: `${user.name} meminjam aset "${asset.name}" (${asset.asset_code})`,
+            referenceType: "transaction",
+            referenceId: transaction.id,
+            referenceUuid: newTransaction.uuid
+        });
+
         res.status(201).json(
             successResponse(newTransaction, "Aset berhasil dipinjamkan")
         );
@@ -247,6 +269,30 @@ export const checkinAsset = async (req, res) => {
                 { association: "employee", attributes: ["uuid", "name", "department"] },
                 { association: "admin", attributes: ["uuid", "name"] }
             ]
+        });
+
+        // Send notification to the user who returned
+        if (asset.current_holder_id) {
+            await createNotification({
+                userId: asset.current_holder_id,
+                type: "checkin",
+                title: "Aset Dikembalikan",
+                message: `Aset "${asset.name}" (${asset.asset_code}) telah dikembalikan`,
+                referenceType: "transaction",
+                referenceId: transaction.id,
+                referenceUuid: newTransaction.uuid
+            });
+        }
+
+        // Notify staff and admins
+        const holderName = asset.holder?.name || "Unknown";
+        await notifyStaffAndAdmins({
+            type: "checkin",
+            title: "Pengembalian Aset",
+            message: `${holderName} mengembalikan aset "${asset.name}" (${asset.asset_code})`,
+            referenceType: "transaction",
+            referenceId: transaction.id,
+            referenceUuid: newTransaction.uuid
         });
 
         res.status(201).json(

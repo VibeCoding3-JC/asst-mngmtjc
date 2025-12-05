@@ -4,6 +4,7 @@ import Categories from "./CategoryModel.js";
 import Locations from "./LocationModel.js";
 import Assets from "./AssetModel.js";
 import Transactions from "./TransactionModel.js";
+import Notifications from "./NotificationModel.js";
 
 // ========================================
 // RELASI ANTAR MODEL
@@ -69,6 +70,16 @@ Transactions.belongsTo(Users, {
     as: "admin"
 });
 
+// 7. User - Notification Relationship
+Users.hasMany(Notifications, {
+    foreignKey: "user_id",
+    as: "notifications"
+});
+Notifications.belongsTo(Users, {
+    foreignKey: "user_id",
+    as: "user"
+});
+
 // ========================================
 // SYNC DATABASE
 // ========================================
@@ -102,6 +113,7 @@ export {
     Locations,
     Assets,
     Transactions,
+    Notifications,
     syncDatabase
 };
 

@@ -3,7 +3,6 @@ import { Menu, Transition } from "@headlessui/react";
 import { Link } from "react-router-dom";
 import {
     Bars3Icon,
-    BellIcon,
     UserCircleIcon,
     ArrowRightOnRectangleIcon,
     Cog6ToothIcon
@@ -11,6 +10,7 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { getInitials, getAvatarColor } from "../../utils/helpers";
 import { USER_ROLE_LABELS } from "../../utils/constants";
+import { NotificationDropdown } from "../notifications";
 
 const Navbar = ({ setSidebarOpen }) => {
     const { user, logout } = useAuth();
@@ -38,11 +38,7 @@ const Navbar = ({ setSidebarOpen }) => {
                 {/* Right side */}
                 <div className="flex items-center gap-4">
                     {/* Notifications */}
-                    <button className="p-2 rounded-full text-gray-400 hover:text-gray-500 hover:bg-gray-100 relative">
-                        <BellIcon className="h-6 w-6" />
-                        {/* Notification badge */}
-                        {/* <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span> */}
-                    </button>
+                    <NotificationDropdown />
 
                     {/* User menu */}
                     <Menu as="div" className="relative">

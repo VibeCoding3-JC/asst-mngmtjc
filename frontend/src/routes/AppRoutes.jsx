@@ -17,6 +17,7 @@ import LocationList from "../pages/locations/LocationList";
 import Reports from "../pages/reports/Reports";
 import ChatPage from "../pages/chat/ChatPage";
 import { ProfileSettings } from "../pages/profile";
+import { NotificationPage } from "../pages/notifications";
 
 // Error Pages
 import NotFound from "../pages/errors/NotFound";
@@ -102,6 +103,9 @@ const AppRoutes = () => {
 
                 {/* Profile */}
                 <Route path="profile" element={<ProfileSettings />} />
+
+                {/* Notifications */}
+                <Route path="notifications" element={<NotificationPage />} />
 
                 {/* AI Chat Query - Admin & Staff Only */}
                 <Route
