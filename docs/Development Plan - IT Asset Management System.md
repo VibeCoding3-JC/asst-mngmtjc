@@ -1,8 +1,8 @@
 # 📋 Development Plan - IT Asset Management System
 
-**Versi Dokumen:** 1.2  
-**Tanggal:** 4 Desember 2025  
-**Status:** IN PROGRESS - Fase 6 (Deployment) + AI Chat Feature
+**Versi Dokumen:** 1.3  
+**Tanggal:** 5 Desember 2025  
+**Status:** IN PROGRESS - Fase 6 (Deployment) + AI Chat + Profile Settings + Notification System
 **Repository:** https://github.com/VibeCoding3-JC/asst-mngmtjc
 
 ---
@@ -31,7 +31,9 @@ it-asset-management/
 │   │   ├── AuthController.js
 │   │   ├── CategoryController.js
 │   │   ├── ChatController.js
+│   │   ├── DashboardController.js
 │   │   ├── LocationController.js
+│   │   ├── NotificationController.js
 │   │   ├── TransactionController.js
 │   │   └── UserController.js
 │   ├── middleware/
@@ -42,6 +44,7 @@ it-asset-management/
 │   │   ├── AssetModel.js
 │   │   ├── CategoryModel.js
 │   │   ├── LocationModel.js
+│   │   ├── NotificationModel.js
 │   │   ├── TransactionModel.js
 │   │   ├── UserModel.js
 │   │   └── index.js
@@ -51,6 +54,7 @@ it-asset-management/
 │   │   ├── CategoryRoutes.js
 │   │   ├── ChatRoutes.js
 │   │   ├── LocationRoutes.js
+│   │   ├── NotificationRoutes.js
 │   │   ├── TransactionRoutes.js
 │   │   └── UserRoutes.js
 │   ├── services/
@@ -81,6 +85,8 @@ it-asset-management/
 │   │   │   │   ├── Sidebar.jsx
 │   │   │   │   ├── Navbar.jsx
 │   │   │   │   └── Layout.jsx
+│   │   │   ├── notifications/
+│   │   │   │   └── NotificationDropdown.jsx
 │   │   │   └── forms/
 │   │   │       ├── AssetForm.jsx
 │   │   │       ├── UserForm.jsx
@@ -114,8 +120,12 @@ it-asset-management/
 │   │   │   │   └── LocationList.jsx
 │   │   │   ├── reports/
 │   │   │   │   └── Reports.jsx
-│   │   │   └── chat/
-│   │   │       └── ChatPage.jsx
+│   │   │   ├── chat/
+│   │   │   │   └── ChatPage.jsx
+│   │   │   ├── profile/
+│   │   │   │   └── ProfileSettings.jsx
+│   │   │   └── notifications/
+│   │   │       └── NotificationPage.jsx
 │   │   ├── services/
 │   │   │   └── chatApi.js
 │   │   ├── routes/
@@ -1152,6 +1162,181 @@ REFRESH_TOKEN_SECRET=your_refresh_secret
 
 ---
 
+# 🎯 FASE 5C: PROFILE SETTINGS FEATURE (Minggu 6)
+
+## 5C.1 Profile Settings Implementation
+
+### Backend - Auth Controller Updates
+
+#### Checklist Tasks:
+
+- [x] **5C.1.1** Update `AuthController.js`:
+  - [x] Add `updateProfile()` function for updating user name, email, phone, department
+  - [x] Add `changePassword()` function with current password verification
+  - [x] Implement password validation with Argon2
+- [x] **5C.1.2** Update `AuthRoutes.js`:
+  - [x] PUT `/api/auth/profile` - update profile (authenticated)
+  - [x] PUT `/api/auth/change-password` - change password (authenticated)
+
+### Frontend - Profile Settings Page
+
+#### Checklist Tasks:
+
+- [x] **5C.2.1** Create `pages/profile/ProfileSettings.jsx`:
+  - [x] Profile card with user info display
+  - [x] Edit Profile modal with form fields:
+    - [x] Name input
+    - [x] Email input (readonly)
+    - [x] Phone input
+    - [x] Department input
+  - [x] Change Password modal with form fields:
+    - [x] Current password input
+    - [x] New password input
+    - [x] Confirm password input
+  - [x] Password validation (min 6 characters, match confirmation)
+  - [x] Success/error toast notifications
+- [x] **5C.2.2** Add route `/profile` to `AppRoutes.jsx`
+- [x] **5C.2.3** Link from Navbar user dropdown to Profile Settings
+
+## 5C.2 Profile Settings Test Summary
+
+| Test Category | Status | Notes |
+|---------------|--------|-------|
+| Edit Profile Form | ✅ PASS | Name, phone, department update working |
+| Profile API | ✅ PASS | PUT /api/auth/profile endpoint working |
+| Change Password | ✅ PASS | Password change with validation working |
+| Password Validation | ✅ PASS | Current password verification working |
+| UI/UX | ✅ PASS | Modal forms responsive, toast notifications |
+
+---
+
+# 🎯 FASE 5D: NOTIFICATION SYSTEM (Minggu 6)
+
+## 5D.1 Notification Backend
+
+### Database Model
+
+#### Checklist Tasks:
+
+- [x] **5D.1.1** Create `models/NotificationModel.js`:
+  - [x] id (INT, PK, Auto Increment)
+  - [x] uuid (VARCHAR(36), Unique, Not Null)
+  - [x] user_id (INT, FK -> users)
+  - [x] type (ENUM: 'checkout', 'checkin', 'maintenance', 'overdue', 'system', 'asset_update')
+  - [x] title (VARCHAR(255), Not Null)
+  - [x] message (TEXT, Not Null)
+  - [x] reference_type (VARCHAR(50), Nullable) - 'asset', 'transaction'
+  - [x] reference_id (INT, Nullable)
+  - [x] reference_uuid (VARCHAR(36), Nullable)
+  - [x] is_read (BOOLEAN, Default false)
+  - [x] read_at (DATETIME, Nullable)
+  - [x] created_at (DATETIME)
+  - [x] updated_at (DATETIME)
+- [x] **5D.1.2** Update `models/index.js`:
+  - [x] Import NotificationModel
+  - [x] Define relation: User hasMany Notifications
+  - [x] Define relation: Notification belongsTo User
+
+### Notification Controller
+
+#### Checklist Tasks:
+
+- [x] **5D.1.3** Create `controllers/NotificationController.js`:
+  - [x] `getNotifications()` - Get user notifications with pagination and filter
+  - [x] `getUnreadCount()` - Get count of unread notifications
+  - [x] `markAsRead()` - Mark single notification as read
+  - [x] `markAllAsRead()` - Mark all notifications as read
+  - [x] `deleteNotification()` - Delete a notification
+  - [x] `deleteAllRead()` - Delete all read notifications
+  - [x] Helper: `createNotification()` - Internal function to create notification
+  - [x] Helper: `sendNotificationToUsers()` - Send notification to multiple users
+  - [x] Helper: `notifyAdmins()` - Send notification to all admins
+  - [x] Helper: `notifyStaffAndAdmins()` - Send notification to staff and admins
+
+### Notification Routes
+
+#### Checklist Tasks:
+
+- [x] **5D.1.4** Create `routes/NotificationRoutes.js`:
+  - [x] GET `/api/notifications` - Get all notifications (authenticated)
+  - [x] GET `/api/notifications/unread-count` - Get unread count (authenticated)
+  - [x] PATCH `/api/notifications/:uuid/read` - Mark as read (authenticated)
+  - [x] PATCH `/api/notifications/read-all` - Mark all as read (authenticated)
+  - [x] DELETE `/api/notifications/:uuid` - Delete notification (authenticated)
+  - [x] DELETE `/api/notifications/clear-read` - Delete all read (authenticated)
+- [x] **5D.1.5** Register routes in `index.js`
+
+### Auto-Notification Triggers
+
+#### Checklist Tasks:
+
+- [x] **5D.1.6** Update `TransactionController.js`:
+  - [x] On checkout: Notify borrower about successful checkout
+  - [x] On checkout: Notify staff/admins about new checkout
+  - [x] On checkin: Notify returner about successful return
+  - [x] On checkin: Notify staff/admins about asset return
+
+---
+
+## 5D.2 Notification Frontend
+
+### Notification Dropdown Component
+
+#### Checklist Tasks:
+
+- [x] **5D.2.1** Create `components/notifications/NotificationDropdown.jsx`:
+  - [x] Bell icon with unread badge count
+  - [x] Dropdown showing 5 recent notifications
+  - [x] Notification item with icon based on type
+  - [x] Click to mark as read
+  - [x] Link to full notifications page
+  - [x] Auto-refresh every 30 seconds
+  - [x] Relative time display (e.g., "5 menit lalu")
+- [x] **5D.2.2** Integrate into `Navbar.jsx`:
+  - [x] Replace static bell icon with NotificationDropdown component
+
+### Notification Page
+
+#### Checklist Tasks:
+
+- [x] **5D.2.3** Create `pages/notifications/NotificationPage.jsx`:
+  - [x] Full list of all notifications
+  - [x] Pagination (10 per page)
+  - [x] Filter: All / Unread only
+  - [x] Mark single notification as read
+  - [x] Delete single notification
+  - [x] Bulk actions: Mark all as read, Clear all read
+  - [x] Empty state when no notifications
+  - [x] Type-based icons and colors
+- [x] **5D.2.4** Add route `/notifications` to `AppRoutes.jsx`
+
+---
+
+## 5D.3 Notification Test Summary
+
+### Backend API Tests
+
+| Endpoint | Method | Status | Notes |
+|----------|--------|--------|-------|
+| /api/notifications | GET | ✅ PASS | Returns paginated notifications |
+| /api/notifications/unread-count | GET | ✅ PASS | Returns unread count |
+| /api/notifications/:uuid/read | PATCH | ✅ PASS | Marks as read, updates read_at |
+| /api/transactions/checkout | POST | ✅ PASS | Creates auto-notifications |
+| /api/transactions/checkin | POST | ✅ PASS | Creates auto-notifications |
+
+### Frontend UI Tests
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Bell Icon Badge | ✅ PASS | Shows unread count |
+| Dropdown List | ✅ PASS | Shows 5 recent notifications |
+| Notification Page | ✅ PASS | Full list with pagination |
+| Mark as Read | ✅ PASS | Single and bulk actions |
+| Delete Notification | ✅ PASS | Individual delete working |
+| Auto-refresh | ✅ PASS | Polls every 30 seconds |
+
+---
+
 # 🎯 FASE 6: DEPLOYMENT PREPARATION (Minggu 6-7)
 
 ## 6.0 CI/CD Setup (GitHub Actions)
@@ -1255,6 +1440,8 @@ REFRESH_TOKEN_SECRET=your_refresh_secret
 | 4 | Frontend Development | 100% | ✅ Completed |
 | 5 | Integration & Testing | 100% | ✅ Completed |
 | 5B | AI Chat Query Feature | 100% | ✅ Completed |
+| 5C | Profile Settings Feature | 100% | ✅ Completed |
+| 5D | Notification System | 100% | ✅ Completed |
 | 6 | Deployment Preparation | 95% | 🔄 In Progress |
 
 **Legend:**
@@ -1366,6 +1553,19 @@ REFRESH_TOKEN_SECRET=your_refresh_secret
 | 2024-12-04 | Model: gemini-2.0-flash (stable version) |
 | 2024-12-04 | AI Chat fully tested and working with all query types |
 | 2024-12-04 | Committed to feature/ai-chat-query branch (11 files, 1,263 insertions) |
+| 2024-12-05 | **Profile Settings Feature Added** - Complete profile management |
+| 2024-12-05 | AuthController updated: updateProfile() and changePassword() endpoints |
+| 2024-12-05 | ProfileSettings.jsx: Edit profile modal + Change password modal |
+| 2024-12-05 | Profile route added to AppRoutes.jsx |
+| 2024-12-05 | **Notification System Feature Added** - Complete notification management |
+| 2024-12-05 | NotificationModel.js: New model with type, title, message, reference fields |
+| 2024-12-05 | NotificationController.js: CRUD + helper functions for auto-notifications |
+| 2024-12-05 | NotificationRoutes.js: 6 endpoints for notification management |
+| 2024-12-05 | TransactionController.js: Auto-notifications on checkout/checkin |
+| 2024-12-05 | NotificationDropdown.jsx: Bell icon with badge in Navbar |
+| 2024-12-05 | NotificationPage.jsx: Full page with filters, pagination, bulk actions |
+| 2024-12-05 | All notification features tested (backend API + frontend UI) |
+| 2024-12-05 | Committed and pushed to main branch (commit 4146bca) |
 
 ---
 
@@ -1386,5 +1586,5 @@ REFRESH_TOKEN_SECRET=your_refresh_secret
 
 ---
 
-*Document Version: 1.0*  
-*Last Updated: 4 Desember 2024*
+*Document Version: 1.3*  
+*Last Updated: 5 Desember 2025*
