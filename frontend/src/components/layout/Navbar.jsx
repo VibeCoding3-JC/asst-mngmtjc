@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 import { Menu, Transition } from "@headlessui/react";
+import { Link } from "react-router-dom";
 import {
     Bars3Icon,
     BellIcon,
@@ -73,27 +74,29 @@ const Navbar = ({ setSidebarOpen }) => {
 
                                     <Menu.Item>
                                         {({ active }) => (
-                                            <button
+                                            <Link
+                                                to="/profile"
                                                 className={`${
                                                     active ? "bg-gray-100" : ""
                                                 } flex items-center w-full px-4 py-2 text-sm text-gray-700`}
                                             >
                                                 <UserCircleIcon className="h-5 w-5 mr-3 text-gray-400" />
                                                 Profil Saya
-                                            </button>
+                                            </Link>
                                         )}
                                     </Menu.Item>
 
                                     <Menu.Item>
                                         {({ active }) => (
-                                            <button
+                                            <Link
+                                                to="/profile"
                                                 className={`${
                                                     active ? "bg-gray-100" : ""
                                                 } flex items-center w-full px-4 py-2 text-sm text-gray-700`}
                                             >
                                                 <Cog6ToothIcon className="h-5 w-5 mr-3 text-gray-400" />
                                                 Pengaturan
-                                            </button>
+                                            </Link>
                                         )}
                                     </Menu.Item>
 

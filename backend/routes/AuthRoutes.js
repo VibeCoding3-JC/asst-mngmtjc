@@ -4,7 +4,9 @@ import {
     login,
     logout,
     refreshToken,
-    getMe
+    getMe,
+    updateProfile,
+    changePassword
 } from "../controllers/AuthController.js";
 import { verifyToken, checkRole } from "../middleware/AuthMiddleware.js";
 import { validateBody } from "../middleware/ValidationMiddleware.js";
@@ -19,6 +21,8 @@ router.delete("/logout", logout);
 
 // Protected routes
 router.get("/me", verifyToken, getMe);
+router.put("/profile", verifyToken, updateProfile);
+router.put("/change-password", verifyToken, changePassword);
 
 // Admin only routes
 router.post("/register", verifyToken, checkRole("admin"), validateBody(userSchemas.register), register);

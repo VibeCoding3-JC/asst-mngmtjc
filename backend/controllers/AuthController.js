@@ -277,3 +277,120 @@ export const getMe = async (req, res) => {
         );
     }
 };
+
+/**
+ * Update current user profile
+ */
+export const updateProfile = async (req, res) => {
+    try {
+        const { name, email, phone, department } = req.body;
+
+        // Find user
+        const user = await Users.findOne({
+            where: { id: req.userId }
+        });
+
+        if (!user) {
+            return res.status(404).json(
+                errorResponse("User tidak ditemukan", "USER_NOT_FOUND")
+            );
+        }
+
+        // Check if email already used by another user
+        if (email && email !== user.email) {
+            const existingUser = await Users.findOne({
+                where: { email }
+            });
+            if (existingUser) {
+                return res.status(400).json(
+                    errorResponse("Email sudah digunakan oleh user lain", "EMAIL_EXISTS")
+                );
+            }
+        }
+
+        // Update user
+        await user.update({
+            name: name || user.name,
+            email: email || user.email,
+            phone: phone !== undefined ? phone : user.phone,
+            department: department !== undefined ? department : user.department
+        });
+
+        // Fetch updated user
+        const updatedUser = await Users.findOne({
+            where: { id: req.userId },
+            attributes: ["uuid", "name", "email", "role", "department", "phone", "is_active", "created_at"]
+        });
+
+        res.json(successResponse(updatedUser, "Profil berhasil diperbarui"));
+
+    } catch (error) {
+        console.error("Update profile error:", error);
+        res.status(500).json(
+            errorResponse("Terjadi kesalahan server", "SERVER_ERROR")
+        );
+    }
+};
+
+/**
+ * Change password for current user
+ */
+export const changePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword, confirmPassword } = req.body;
+
+        // Validate input
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            return res.status(400).json(
+                errorResponse("Semua field password harus diisi", "VALIDATION_ERROR")
+            );
+        }
+
+        // Check new password match
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json(
+                errorResponse("Password baru dan konfirmasi tidak cocok", "PASSWORD_MISMATCH")
+            );
+        }
+
+        // Check minimum length
+        if (newPassword.length < 6) {
+            return res.status(400).json(
+                errorResponse("Password minimal 6 karakter", "PASSWORD_TOO_SHORT")
+            );
+        }
+
+        // Find user with password
+        const user = await Users.findOne({
+            where: { id: req.userId }
+        });
+
+        if (!user) {
+            return res.status(404).json(
+                errorResponse("User tidak ditemukan", "USER_NOT_FOUND")
+            );
+        }
+
+        // Verify current password
+        const validPassword = await argon2.verify(user.password, currentPassword);
+        if (!validPassword) {
+            return res.status(400).json(
+                errorResponse("Password saat ini salah", "INVALID_PASSWORD")
+            );
+        }
+
+        // Hash new password
+        const hashedPassword = await argon2.hash(newPassword);
+
+        // Update password
+        await user.update({ password: hashedPassword });
+
+        res.json(successResponse(null, "Password berhasil diubah"));
+
+    } catch (error) {
+        console.error("Change password error:", error);
+        res.status(500).json(
+            errorResponse("Terjadi kesalahan server", "SERVER_ERROR")
+        );
+    }
+};

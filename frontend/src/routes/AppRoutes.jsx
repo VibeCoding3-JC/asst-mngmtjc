@@ -16,6 +16,7 @@ import CategoryList from "../pages/categories/CategoryList";
 import LocationList from "../pages/locations/LocationList";
 import Reports from "../pages/reports/Reports";
 import ChatPage from "../pages/chat/ChatPage";
+import { ProfileSettings } from "../pages/profile";
 
 // Error Pages
 import NotFound from "../pages/errors/NotFound";
@@ -98,6 +99,9 @@ const AppRoutes = () => {
 
                 {/* Reports */}
                 <Route path="reports" element={<Reports />} />
+
+                {/* Profile */}
+                <Route path="profile" element={<ProfileSettings />} />
 
                 {/* AI Chat Query - Admin & Staff Only */}
                 <Route

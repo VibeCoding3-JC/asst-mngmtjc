@@ -69,13 +69,23 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const refreshUser = async () => {
+        try {
+            const response = await authAPI.getMe();
+            setUser(response.data.data);
+        } catch (error) {
+            console.error("Refresh user error:", error);
+        }
+    };
+
     const value = {
         user,
         loading,
         isAuthenticated,
         login,
         logout,
-        checkAuth
+        checkAuth,
+        refreshUser
     };
 
     return (
