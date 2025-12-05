@@ -137,7 +137,7 @@ const TransactionList = () => {
             render: (value) => (
                 <div>
                     <Link 
-                        to={`/assets/${value?.id}`}
+                        to={`/assets/${value?.uuid}`}
                         className="font-medium text-primary-600 hover:text-primary-800"
                     >
                         {value?.name || "-"}
@@ -170,7 +170,7 @@ const TransactionList = () => {
             label: "Aksi",
             render: (_, row) => (
                 <Link
-                    to={`/assets/${row.asset?.id}`}
+                    to={`/assets/${row.asset?.uuid}`}
                     className="p-1 text-gray-500 hover:text-primary-600 transition-colors"
                     title="Lihat Aset"
                 >

@@ -190,11 +190,11 @@ const LocationList = () => {
             render: (value) => value || "-"
         },
         {
-            key: "_count",
+            key: "asset_count",
             label: "Jumlah Aset",
             render: (value) => (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                    {value?.assets || 0} aset
+                    {value || 0} aset
                 </span>
             )
         },

@@ -21,7 +21,6 @@ const UserForm = () => {
         password: "",
         confirmPassword: "",
         role: USER_ROLES.STAFF,
-        employee_id: "",
         department: "",
         phone: ""
     });
@@ -44,7 +43,6 @@ const UserForm = () => {
                 password: "",
                 confirmPassword: "",
                 role: user.role || USER_ROLES.STAFF,
-                employee_id: user.employee_id || "",
                 department: user.department || "",
                 phone: user.phone || ""
             });
@@ -108,7 +106,6 @@ const UserForm = () => {
                 name: formData.name,
                 email: formData.email,
                 role: formData.role,
-                employee_id: formData.employee_id || null,
                 department: formData.department || null,
                 phone: formData.phone || null
             };
@@ -239,13 +236,6 @@ const UserForm = () => {
                 {/* Additional Information */}
                 <Card title="Informasi Tambahan">
                     <div className="space-y-6">
-                        <Input
-                            label="ID Karyawan"
-                            name="employee_id"
-                            value={formData.employee_id}
-                            onChange={handleChange}
-                            placeholder="Contoh: EMP-001"
-                        />
                         <Input
                             label="Departemen"
                             name="department"

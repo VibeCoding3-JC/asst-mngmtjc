@@ -14,7 +14,8 @@ export const getLocations = async (req, res) => {
         if (search) {
             whereClause[Op.or] = [
                 { name: { [Op.like]: `%${search}%` } },
-                { address: { [Op.like]: `%${search}%` } },
+                { building: { [Op.like]: `%${search}%` } },
+                { floor: { [Op.like]: `%${search}%` } },
                 { description: { [Op.like]: `%${search}%` } }
             ];
         }
@@ -114,7 +115,7 @@ export const getLocationById = async (req, res) => {
  */
 export const createLocation = async (req, res) => {
     try {
-        const { name, address, description } = req.body;
+        const { name, building, floor, room_number, address, description } = req.body;
 
         // Check if location name exists
         const existingLocation = await Locations.findOne({
@@ -128,6 +129,9 @@ export const createLocation = async (req, res) => {
 
         const location = await Locations.create({
             name,
+            building,
+            floor,
+            room_number,
             address,
             description
         });
@@ -159,7 +163,7 @@ export const updateLocation = async (req, res) => {
             );
         }
 
-        const { name, address, description } = req.body;
+        const { name, building, floor, room_number, address, description } = req.body;
 
         // Check uniqueness if name changed
         const newName = name || location.name;
@@ -180,6 +184,9 @@ export const updateLocation = async (req, res) => {
 
         await Locations.update({
             name: newName,
+            building: building !== undefined ? building : location.building,
+            floor: floor !== undefined ? floor : location.floor,
+            room_number: room_number !== undefined ? room_number : location.room_number,
             address: address !== undefined ? address : location.address,
             description: description !== undefined ? description : location.description
         }, { where: { id: location.id } });
