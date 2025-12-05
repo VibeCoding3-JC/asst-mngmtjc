@@ -1,8 +1,8 @@
 # 📋 Development Plan - IT Asset Management System
 
-**Versi Dokumen:** 1.3  
+**Versi Dokumen:** 1.4  
 **Tanggal:** 5 Desember 2025  
-**Status:** IN PROGRESS - Fase 6 (Deployment) + AI Chat + Profile Settings + Notification System
+**Status:** IN PROGRESS - Fase 6 (Deployment) + AI Chat + Profile Settings + Notification System + GitHub Telegram Notification
 **Repository:** https://github.com/VibeCoding3-JC/asst-mngmtjc
 
 ---
@@ -243,7 +243,7 @@ REFRESH_TOKEN_SECRET=your_refresh_secret
 ## 2.1 Model Users
 
 ### Checklist Tasks:
-
+say
 - [x] **2.1.1** Buat file `models/UserModel.js`
 - [x] **2.1.2** Definisikan schema:
   - [x] id (INT, PK, Auto Increment)
@@ -1337,6 +1337,102 @@ REFRESH_TOKEN_SECRET=your_refresh_secret
 
 ---
 
+# 🎯 FASE 5E: GITHUB TELEGRAM NOTIFICATION (Minggu 6)
+
+## 5E.1 Overview
+
+### Tujuan
+Mengirim notifikasi otomatis ke Telegram setiap kali ada push/commit ke repository GitHub.
+
+### Arsitektur
+
+```
+GitHub Repository (Push Event)
+       │
+       ▼
+GitHub Actions Workflow
+       │
+       ▼
+Telegram Bot API (Official)
+       │
+       ▼
+Telegram App (User Device)
+```
+
+---
+
+## 5E.2 Telegram Bot Setup
+
+### Checklist Tasks:
+
+- [x] **5E.2.1** Buat bot di Telegram via @BotFather
+- [x] **5E.2.2** Dapatkan Bot Token
+- [x] **5E.2.3** Dapatkan Chat ID user/group
+- [x] **5E.2.4** Test kirim pesan via API
+
+### Bot Information:
+
+| Item | Nilai |
+|------|-------|
+| Bot Name | juarabot |
+| Bot Username | @Juara5bot |
+| Chat ID | 1324129072 |
+
+---
+
+## 5E.3 GitHub Actions Workflow
+
+### Checklist Tasks:
+
+- [x] **5E.3.1** Buat file `.github/workflows/telegram-notify.yml`
+- [x] **5E.3.2** Konfigurasi trigger untuk semua branch
+- [x] **5E.3.3** Format pesan dengan informasi commit
+- [ ] **5E.3.4** Setup GitHub Secrets:
+  - [ ] `TELEGRAM_BOT_TOKEN`
+  - [ ] `TELEGRAM_CHAT_ID`
+- [ ] **5E.3.5** Test dengan push commit
+
+### Workflow File:
+
+```yaml
+.github/workflows/telegram-notify.yml
+```
+
+### Trigger:
+- Push event ke semua branch
+
+### Format Pesan:
+
+```
+🔔 New Commit - asst-mngmtjc
+
+📌 Branch: main
+👤 Author: IT LPDP
+📝 Message: feat: Add notification system
+
+🔗 Commit: abc1234
+📅 Time: 05 Des 2025, 14:30 WIB
+
+🔗 View Commit
+```
+
+---
+
+## 5E.4 GitHub Secrets Required
+
+| Secret Name | Description |
+|-------------|-------------|
+| `TELEGRAM_BOT_TOKEN` | Token dari BotFather |
+| `TELEGRAM_CHAT_ID` | Chat ID tujuan notifikasi |
+
+### Cara Setup Secrets:
+1. Buka repository GitHub
+2. Settings → Secrets and variables → Actions
+3. Klik "New repository secret"
+4. Tambahkan `TELEGRAM_BOT_TOKEN` dan `TELEGRAM_CHAT_ID`
+
+---
+
 # 🎯 FASE 6: DEPLOYMENT PREPARATION (Minggu 6-7)
 
 ## 6.0 CI/CD Setup (GitHub Actions)
@@ -1442,6 +1538,7 @@ REFRESH_TOKEN_SECRET=your_refresh_secret
 | 5B | AI Chat Query Feature | 100% | ✅ Completed |
 | 5C | Profile Settings Feature | 100% | ✅ Completed |
 | 5D | Notification System | 100% | ✅ Completed |
+| 5E | GitHub Telegram Notification | 80% | 🔄 In Progress |
 | 6 | Deployment Preparation | 95% | 🔄 In Progress |
 
 **Legend:**
@@ -1566,6 +1663,13 @@ REFRESH_TOKEN_SECRET=your_refresh_secret
 | 2024-12-05 | NotificationPage.jsx: Full page with filters, pagination, bulk actions |
 | 2024-12-05 | All notification features tested (backend API + frontend UI) |
 | 2024-12-05 | Committed and pushed to main branch (commit 4146bca) |
+| 2024-12-05 | **GitHub Telegram Notification Feature Added** |
+| 2024-12-05 | Telegram Bot created: @Juara5bot via BotFather |
+| 2024-12-05 | Bot Token dan Chat ID berhasil didapatkan |
+| 2024-12-05 | Test kirim pesan ke Telegram: SUCCESS |
+| 2024-12-05 | Workflow file: .github/workflows/telegram-notify.yml |
+| 2024-12-05 | Trigger: Push event ke semua branch |
+| 2024-12-05 | Menunggu setup GitHub Secrets (TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID) |
 
 ---
 
@@ -1586,5 +1690,5 @@ REFRESH_TOKEN_SECRET=your_refresh_secret
 
 ---
 
-*Document Version: 1.3*  
+*Document Version: 1.4*  
 *Last Updated: 5 Desember 2025*
